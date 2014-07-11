@@ -1,12 +1,18 @@
 # om-pear
 
-does nothing but eventually....
-om-component for google-closure-grid
+does nothing but eventually...  
+om-component for google-closure-grid  
 https://github.com/dekajp/google-closure-grid
 
 ## Usage
 
 TBD!
+
+## Dev Notes
+
+getting library via  
+`wget http://dekajp.github.io/src/bin/release/pear.grid.js`  
+`wget http://dekajp.github.io/src/css/grid.css`
 
 ## License
 
