@@ -18,22 +18,21 @@
                         }))
 
 (defn ^:export om-pear [app-state owner]
-  (om/component (let [g (js/pear.ui.Grid.) 
-                      dom-ele (dom/div #js {:id "omdom-grid"})]
+  (om/component (let [g (js/pear.ui.Grid.)]
                   (.setColumns g (:columns app-state))
                   (.setDataRows g (:data app-state))
                   (.setConfiguration g (:config app-state) )
                   (.setWidth g (:width app-state))
                   (.setHeight g (:height app-state))
                   (.setTitle g (:title app-state))
-                  (.render g (. js/document (getElementById "omdom-grid")))
-                  ;; (js/console.log g)
-                  (js/console.log dom-ele)
-                  dom-ele)))
+                  (dom/div {} (.render g)) ; 25-33ms
+                  )))
 
+;; (.time js/console "cljs")
 (om/root ; again for testing/dev.. remove when rdy
          ; could include this in docs
          om-pear
          my-testdev-grid
          {:target (. js/document (getElementById "here"))})
+;; (.timeEnd js/console "cljs")
 
