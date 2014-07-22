@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Closure Unit Tests - pear.ui.Grid</title>
+  <link rel="stylesheet" href="../../css/grid.css" />
+  <script src="../../../lib/closure-library/closure/goog/base.js"></script>
+  
+  <script src="../peardeps.js"></script>
+  <script src="../peartestdata.js"></script>
+
+
+  <script>
+    goog.require('goog.dom');
+    goog.require('goog.testing.jsunit');
+    goog.require('goog.testing.events');
+    goog.require('pear.ui.Grid');
+    goog.require('goog.i18n.NumberFormat')
+    goog.require('goog.i18n.DateTimeFormat');
+    goog.require('goog.testing.MockClock');
+
+
+  </script>
+</head>
+<body>
+  <div id="content">
+    <div id="target1" style="width:800px;height:500px">
+    </div>
+  </div>
+  <script>
+    var grid;
+    var mockClock ;
+    var columns ;
+    var data ;
+    
+    function setUp() {
+      mockClock = new goog.testing.MockClock(true);
+      grid = new pear.ui.Grid();
+    }
+
+    function setConfiguration(config){
+      grid.setConfiguration(config);
+    }
+    function renderGrid(){
+      columns = testData1Columns();
+      data = testData1Rows(500);
+      grid.setWidth(800);
+      grid.setHeight(400);
+      grid.setColumns(columns);
+      grid.setDataRows(data);
+      grid.render(goog.dom.getElement('target1'));
+    }
+
+    function tearDown() {
+      grid.dispose();
+      grid = null;
+      data=null;
+      mockClock.dispose();
+    }
+
+
+    function testConstructor() {
+      assertNotNull('Should have successful construction', grid);
+      assertNotNull('Should be in document', grid);
+    }
+
+    function testColumnResize(){
+      var config = {
+        AllowColumnResize: true
+      };
+     
+      setConfiguration(config);
+      renderGrid();
+
+      var headerCell=grid.getHeaderRow().getHeaderCellByColumnId("orderno");
+      var resizable = headerCell.getResizable();
+      var resizableHandle = resizable.getHandle(pear.ui.Resizable.Position.RIGHT);
+      goog.testing.events.fireMouseDownEvent(resizableHandle);
+      var bounds = goog.style.getBounds(resizableHandle);
+      var previousWidth = grid.getColumnWidthAt(0);
+      var newCoord = new goog.math.Coordinate(bounds.left + 100, bounds.top);
+      goog.testing.events.fireMouseMoveEvent(resizableHandle,newCoord);
+      var newWidth = grid.getColumnWidthAt(0);
+
+      assertEquals('After header column resize',previousWidth+100, newWidth);
+      goog.testing.events.fireMouseMoveEvent(resizableHandle,newCoord);
+      goog.testing.events.fireMouseUpEvent(resizableHandle);
+     
+      var firstrow = grid.getGridRowAt(0);
+      var firstcell = firstrow.getCellAt(0);
+      var bound = goog.style.getComputedStyle(firstcell.getElement(),'width');
+      assertEquals('All cells resize ',previousWidth+100+'px',bound);
+      
+    }
+
+    function testConfigAllowColumnResizeIsFalse(){
+      var config = {
+        AllowColumnResize: false
+      };
+     
+      setConfiguration(config);
+      renderGrid();
+
+      var headerCell=grid.getHeaderRow().getHeaderCellByColumnId("orderno");
+      var resizable = headerCell.getResizable();
+      assertNull('AllowColumnResize:false , No Resizable handle',resizable);
+    }
+
+    function testConfigAllowColumnResizeIsTrue(){
+      var config = {
+        AllowColumnResize: true
+      };
+     
+      setConfiguration(config);
+      renderGrid();
+
+      var headerCell=grid.getHeaderRow().getHeaderCellByColumnId("orderno");
+      var resizable = headerCell.getResizable();
+      var resizableHandle = resizable.getHandle(pear.ui.Resizable.Position.RIGHT);
+      assertNotNull('AllowColumnResize:true ,Resizable handle exists',resizableHandle);
+    }
+
+    function testConfigWidth(){
+       var config = {
+        Width: 800
+      };
+      setConfiguration(config);
+      renderGrid();
+
+      var w=grid.getWidth();
+      assertEquals('Width ',w,config.Width);
+      var bound = goog.style.getStyle(grid.getElement(),'width');
+      assertEquals('Width ',config.Width+'px',bound);
+    }
+
+    function testConfigHeight(){
+       var config = {
+        Height: 400
+      };
+      setConfiguration(config);
+      renderGrid();
+
+      var h=grid.getHeight();
+      assertEquals('Height ',h,config.Height);
+      var bound = goog.style.getStyle(grid.getElement(),'height');
+      assertEquals('Height ',config.Height+'px',bound);
+    };
+
+    function testConfigRowHeight(){
+      var config = {
+        RowHeight: 30
+      };
+     
+      setConfiguration(config);
+      renderGrid();
+
+      var firstrow = grid.getGridRowAt(0);
+      var firstcell = firstrow.getChildAt(0);
+      var bound = goog.style.getComputedStyle(firstrow.getElement(),'height');
+      var borderBox = goog.style.getBorderBoxSize(firstrow.getElement());
+      assertEquals('Height ',config.RowHeight+'px',bound);
+    }
+
+    function testConfigHeaderRowHeight(){
+      var config = {
+        HeaderRowHeight: 40
+      };
+     
+      setConfiguration(config);
+      renderGrid();
+
+      var row = grid.getHeaderRow();
+      var bound = goog.style.getContentBoxSize(row.getElement());
+
+      assertEquals('Config: HeaderRowHeight ',40,bound.height);
+    }
+
+    function testConfigHeaderMenu(){
+      var config = {
+        AllowColumnHeaderMenu: true
+      };
+     
+      setConfiguration(config);
+      renderGrid();
+      // TODO check if column menu is visible
+    }
+
+    function testConfigAllowSorting(){
+      var config = {
+        AllowSorting: true
+      };
+     
+      setConfiguration(config);
+      renderGrid();
+
+      var headerRow = grid.getHeaderRow();
+      var targetHeaderCell = headerRow.getChildAt(3);
+      var sortDirection = pear.ui.Grid.SortDirection.DESC;
+
+      goog.events.listen(grid,pear.ui.Grid.EventType.SORT,function(ge){
+        assertEquals("sort column id ",ge.sortCell.getColumnId(),targetHeaderCell.getColumnId());
+        assertEquals("Sort Direction ",sortDirection,ge.sortDirection);
+      });
+
+      goog.testing.events.fireClickSequence(targetHeaderCell.getElement());
+      sortDirection = pear.ui.Grid.SortDirection.ASC;
+      goog.testing.events.fireClickSequence(targetHeaderCell.getElement());
+    }
+
+    function testColumnWidth(){
+      renderGrid();
+
+      var width = grid.getColumnWidthAt(0);
+      assertEquals('Column Width',width,75);
+
+      var row = grid.getHeaderRow();
+      var bound = goog.style.getContentBoxSize(row.getCellAt(0).getElement());
+      assertEquals('Header Cell Width',bound.width,width);
+
+      var firstrow = grid.getGridRowAt(0);
+      bound = goog.style.getContentBoxSize(firstrow.getCellAt(0).getElement());
+      assertEquals('First Row,First Cell Width',bound.width,width);
+    }
+
+    function testScroll(){
+      renderGrid();
+
+      var firstrow = grid.getGridRowAt(0);
+      var lastrow = grid.getGridRowAt(data.length-1);
+
+      assertEvaluatesToTrue("firstrow inDocument",firstrow.isInDocument());
+      assertEvaluatesToFalse("lastrow inDocument",lastrow.isInDocument());
+
+      var objDiv = grid.getViewport().getElement();
+      dispatchScroll(objDiv,objDiv.scrollHeight);
+      
+      mockClock.tick(SCROLL_DELAY);
+
+      //assertEvaluatesToFalse("firstrow inDocument after full scroll",firstrow.isInDocument());
+      //assertEvaluatesToTrue("lastrow inDocument after full scroll",lastrow.isInDocument());
+    }
+
+    function testBodyCanvasSize(){
+      
+      // Render Grid
+      columns = testData1Columns();
+      data = [];
+      grid.setWidth(800);
+      grid.setHeight(400);
+      grid.setColumns(columns);
+      grid.setDataRows(data);
+      grid.render(goog.dom.getElement('target1'));
+
+      var size = grid.getBodyCanvasSize();
+      assertEquals(size.height, 0);
+
+      data = testData1Rows(1);
+      grid.setDataRows(data);
+      grid.refresh();
+      size = grid.getBodyCanvasSize();
+      assertEquals(size.height, grid.getConfiguration().RowHeight);
+    }
+
+     function test_addDataRow(){
+      
+      // Render Grid
+      columns = testData1Columns();
+      data = [];
+      grid.setWidth(800);
+      grid.setHeight(400);
+      grid.setColumns(columns);
+      grid.setDataRows(data);
+      grid.render(goog.dom.getElement('target1'));
+
+      var size = grid.getBodyCanvasSize();
+      assertEquals(size.height, 0);
+
+      data = testData1Rows(1);
+      grid.addDataRow(data[0]);
+      grid.refresh();
+      size = grid.getBodyCanvasSize();
+      assertEquals(size.height, grid.getConfiguration().RowHeight);
+
+      firstrow = grid.getGridRowAt(0);
+      assertNotNullNorUndefined(firstrow);
+
+      var rowdata = firstrow.getDataRowView().getRowData();
+      assertEquals(data[0],rowdata)
+    }
+
+    function testgetGridRowAt(){
+      
+      // Render Grid
+      columns = testData1Columns();
+      data = [];
+      grid.setWidth(800);
+      grid.setHeight(400);
+      grid.setColumns(columns);
+      grid.setDataRows(data);
+      grid.render(goog.dom.getElement('target1'));
+
+      var firstrow = grid.getGridRowAt(0);
+      assertUndefined(firstrow);
+
+      data = testData1Rows(1);
+      grid.setDataRows(data);
+      grid.refresh();
+      firstrow = grid.getGridRowAt(0);
+      assertNotNullNorUndefined(firstrow);
+
+      var rowdata = firstrow.getDataRowView().getRowData();
+      assertEquals(data[0],rowdata)
+    }
+
+    function testStyle(){
+      // Each Grid Instance should have their own style attribute
+      // Since grid is rendered on Target Element
+      // Each Target Element will have a a Grid Element and Style element
+      // So Grid Element should have the Class , which is ID of Style Element
+      
+      // 
+    }
+
+    function testColumnVisibility(){
+      // Test Column Visibility
+    };
+
+    function testRefresh(){
+      // test Refresh
+    }
+
+    function testRefreshAll(){
+      // test Refresh All
+    }
+  </script>
+</body>
+</html>
