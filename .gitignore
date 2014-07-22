@@ -11,3 +11,4 @@ resources/public/js
 *.clj
 out/
 lib/pear
+om-pear.js*

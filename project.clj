@@ -11,8 +11,9 @@
                    :cljsbuild {:builds {:dev
                                         {:source-paths ["src"]
                                          :compiler {
-                                                    :output-to "resources/public/js/om-pear.js"
+                                                    :output-to "om-pear.js"
                                                     :optimizations :simple
                                                     :output-dir "out"
+                                                    :source-map "om-pear.js.map"
                                                     :libs ["lib"]
                                                     }}}}}})
