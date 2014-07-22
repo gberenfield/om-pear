@@ -11,6 +11,7 @@
                    (clj->js [{:name "Bob Fleming" :address "230 Oak St., NJ USA"}
                           {:name "Rick Rearden" :address "91 Windings Way, Clement OK 28174"}])
                    :config (clj->js {:AllowColumnResize true :ShowCellBorder true :AllowAlternateRowHighlight true})
+                   :width 500 :height 150 :title "My Test Grid"
                    }))
 
 (defn ^:export om-pear [app-state owner]
@@ -19,8 +20,9 @@
                   (.setColumns g (:columns @mygrid))
                   (.setDataRows g (:data @mygrid))
                   (.setConfiguration g (:config @mygrid) )
-                  (.setWidth g 500)
-                  (.setHeight g 200)
+                  (.setWidth g (:width @mygrid))
+                  (.setHeight g (:height @mygrid))
+                  (.setTitle g (:title @mygrid))
                   (.render g (. js/document (getElementById "grid2")))
                   ;; (js/console.log g)
                   dom-ele)))
