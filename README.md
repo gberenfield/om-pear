@@ -10,6 +10,8 @@ TBD!
 
 ## Dev Notes
 
+`lein cljsbuild auto dev`
+
 getting library via `git clone https://github.com/dekajp/google-closure-grid.git`
 then just using `google-closure-grid/src/pear` and symlinking it into `lib`
 per my :lib directive in project.clj
