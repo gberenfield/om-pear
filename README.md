@@ -10,9 +10,13 @@ TBD!
 
 ## Dev Notes
 
-getting library via  
-`wget http://dekajp.github.io/src/bin/release/pear.grid.js`  
-`wget http://dekajp.github.io/src/css/grid.css`
+getting library via `git clone https://github.com/dekajp/google-closure-grid.git`
+then just using `google-closure-grid/src/pear` and symlinking it into `lib`
+per my :lib directive in project.clj
+
+apparently some sort of `:optimizations` is needed for
+google-closure-compiler to run and pickup `lib/pear`
+(:none doesn't work)
 
 ## License
 
