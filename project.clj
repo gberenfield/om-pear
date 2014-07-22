@@ -15,6 +15,4 @@
                                                     :optimizations :simple
                                                     :output-dir "out"
                                                     :libs ["lib"]
-                                                    ;; :foreign-libs [{:file "lib/pear.grid.js"
-                                                    ;;                 :provides ["pear"]}]
                                                     }}}}}})
