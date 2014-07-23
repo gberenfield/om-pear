@@ -2,6 +2,7 @@
   (:require
     [om.core :as om :include-macros true]
     [om.dom :as dom :include-macros true]
+    [domina.events :refer [listen! capture! prevent-default dispatch! current-target]]
     [pear]))
 
 (def my-testdev-grid (atom
@@ -15,6 +16,7 @@
                                   {:name "Rick Rearden" :address "91 Windings Way, Clement OK 28174"}])
                         :config (clj->js {:AllowColumnResize true :ShowCellBorder true :AllowAlternateRowHighlight true})
                         :width 500 :height 150 :title "My Test Grid"
+                        :events {:on-column-resize (fn [e] (.log js/console "resizing column"))}
                         }))
 
 (defn ^:export om-pear [app-state owner]
@@ -25,6 +27,9 @@
                   (.setWidth g (:width app-state))
                   (.setHeight g (:height app-state))
                   (.setTitle g (:title app-state))
+                  (.registerPlugin g (js/pear.plugin.TitleBar.))
+                  (doseq [k (keys (:events app-state)) :let [f (get (:events app-state) k)]]
+                    (listen! g k f))
                   (dom/div {} (.render g)) ; 25-33ms
                   )))
 
